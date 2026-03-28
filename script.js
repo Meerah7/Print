@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("pageRange", pageRange);
 
     try {
-        const res = await fetch("https://print-module-w45w.onrender.com/upload", {
+        const res = await fetch("https://printmod.onrender.com/upload", {
             method: "POST",
             body: formData
         });
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("price", totalPrice);
 
         try {
-            const res = await fetch("https://print-module-w45w.onrender.com/upload", {
+            const res = await fetch("https://printmod.onrender.com/upload", {
     method: "POST",
     body: formData
 });
