@@ -1,126 +1,47 @@
 body {
-    body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-
-    /* Clean soft background */
-    background: linear-gradient(135deg, #eef2f7, #dfe6ed);
-
-    min-height: 100vh;
-}
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #f5f7fa, #e4ecf3);
 }
 
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 28px;
-    color: #2c3e50;
-}
-
-header p {
-    color: #7f8c8d;
-}
-
-
-.section-title {
-    margin-top: 0;
-    font-size: 20px;
-    color: #2c3e50;
-}
 /* MAIN LAYOUT */
-
-
-.main {
+.container {
     display: flex;
-    gap: 30px;
-    align-items: flex-start;
-}
-.card, .preview {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    height: 100vh;
 }
 
-/* LEFT CARD */
+/* LEFT PANEL */
 .card {
-    width: 350px;
-    background: white;
+    width: 30%;
     padding: 20px;
-    border-radius: 12px;
-
-    border: 1px solid #e0e6ed;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
-}
-/* RIGHT PREVIEW */
-.preview {
-    flex: 1;
     background: white;
-    border-radius: 12px;
-
-    border: 1px solid #e0e6ed;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
-
-    height: 600px;
-    overflow-y: auto;
-    padding: 15px;
-}
-.preview {
-    
-    height: 600px;              /* fixed height */
-    overflow-y: auto;           /* enable vertical scroll */
-    background: #fff;
-    border-radius: 12px;
-    padding: 10px;
+    border-right: 2px solid #ddd;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
-
-
-#pdfContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.card h2 {
+    margin-bottom: 10px;
 }
 
-
-#pdfContainer canvas {
-    width: 100% !important;
-    height: auto !important;
+.card h3 {
+    margin-top: 20px;
 }
 
-/* INPUTS */
-input, select {
+.card input,
+.card select {
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     margin-top: 8px;
     margin-bottom: 15px;
-    border-radius: 6px;
     border: 1px solid #ccc;
-}
-
-/* LABELS */
-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #2f3640;
-}
-
-/* FILE INFO */
-#fileName, #pageCount {
-    font-size: 13px;
-    color: #555;
+    border-radius: 6px;
 }
 
 /* PRICE BOX */
 .price-box {
-    background: #f1f2f6;
+    background: #f1f5f9;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
     margin-top: 10px;
 }
@@ -128,7 +49,6 @@ label {
 .price-box p {
     font-size: 24px;
     font-weight: bold;
-    color: #27ae60;
     margin: 0;
 }
 
@@ -136,28 +56,55 @@ label {
 button {
     width: 100%;
     padding: 12px;
-    margin-top: 20px;
-    background: #0984e3;
+    background: #2563eb;
     color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 15px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 button:hover {
-    background: #0652dd;
+    background: #1e40af;
 }
 
+/* RIGHT PANEL */
+.preview-section {
+    width: 70%;
+    padding: 20px;
+    overflow: hidden;
+}
 
+.preview-section h2 {
+    margin-bottom: 10px;
+}
+
+/* PDF CONTAINER */
 #pdfContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* ✅ center pages */
-    gap: 15px;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: #ffffff;
+    border: 2px dashed #ccc;
+    padding: 15px;
+    border-radius: 10px;
 }
 
+/* CANVAS */
 #pdfContainer canvas {
-    width: 90% !important;
-    height: auto !important;
+    width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* LOADER */
+#loader {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.hidden {
+    display: none;
 }
