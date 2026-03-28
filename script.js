@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    // ✅ PDF worker
+    // ✅ PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
     // ✅ Elements
     const fileInput = document.getElementById("fileInput");
@@ -12,13 +12,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const copiesInput = document.getElementById("copies");
     const priceText = document.getElementById("price");
     const container = document.getElementById("pdfContainer");
-    const pageRangeInput = document.getElementById("pageRange");
+    const loader = document.getElementById("loader");
 
     let pdfDoc = null;
     let totalPages = 0;
 
     // ✅ Upload PDF
-    fileInput.addEventListener("change", async (e) => {
+    fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
 
         if (!file || file.type !== "application/pdf") {
@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const reader = new FileReader();
 
         reader.onload = async function () {
+            loader.classList.remove("hidden");
+            container.innerHTML = "";
+
             try {
                 const typedarray = new Uint8Array(this.result);
 
@@ -46,12 +49,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error(err);
                 alert("Error loading PDF");
             }
+
+            loader.classList.add("hidden");
         };
 
         reader.readAsArrayBuffer(file);
     });
 
-    // ✅ Render all pages
+    // ✅ Render ALL pages
     async function renderAllPages() {
         container.innerHTML = "";
 
@@ -80,34 +85,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ✅ Get selected pages count
     function getSelectedPages() {
-        const input = pageRangeInput.value.trim();
+        const input = document.getElementById("pageRange").value.trim();
 
         if (!input) return totalPages;
 
         let count = 0;
         const parts = input.split(",");
 
-        for (let part of parts) {
+        parts.forEach(part => {
             if (part.includes("-")) {
-                let [start, end] = part.split("-").map(Number);
-
-                if (!start || !end || start > end || end > totalPages) {
-                    return 0; // invalid
+                const [start, end] = part.split("-").map(Number);
+                if (start && end && end >= start) {
+                    count += (end - start + 1);
                 }
-
-                count += (end - start + 1);
             } else {
-                let num = Number(part);
-                if (!num || num > totalPages) return 0;
-
-                count += 1;
+                if (!isNaN(part)) count += 1;
             }
-        }
+        });
 
         return count;
     }
 
-    // ✅ Price calculation
+    // ✅ Calculate price
     function calculatePrice() {
         if (!totalPages) {
             priceText.textContent = "₹0";
@@ -115,81 +114,36 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const selectedPages = getSelectedPages();
-
-        if (selectedPages === 0) {
-            priceText.textContent = "Invalid page range";
-            return;
-        }
-
         const type = printType.value;
         const copies = parseInt(copiesInput.value) || 1;
-        const pricePerPage = type === "bw" ? 2 : 5;
 
+        const pricePerPage = type === "bw" ? 2 : 5;
         const totalPrice = selectedPages * copies * pricePerPage;
 
         priceText.textContent = `₹${totalPrice}`;
     }
 
-    // ✅ Listeners
+    // ✅ Event listeners
     printType.addEventListener("change", calculatePrice);
     copiesInput.addEventListener("input", calculatePrice);
-    pageRangeInput.addEventListener("input", calculatePrice);
+    document.getElementById("pageRange")
+        .addEventListener("input", calculatePrice);
 
     // ✅ Save order
-   window.saveOrder = async function () {
-    const file = fileInput.files[0];
+    window.saveOrder = async function () {
+        const file = fileInput.files[0];
 
-    if (!file) {
-        alert("Upload a file first");
-        return;
-    }
+        if (!file) {
+            alert("Upload a file first");
+            return;
+        }
 
-    const selectedPages = getSelectedPages();
+        const selectedPages = getSelectedPages();
 
-    if (selectedPages === 0) {
-        alert("Invalid page range");
-        return;
-    }
-
-    alert("Sending request..."); // ✅ now it works
-
-    const type = printType.value;
-    const copies = parseInt(copiesInput.value) || 1;
-    const pricePerPage = type === "bw" ? 2 : 5;
-
-    const totalPrice = selectedPages * copies * pricePerPage;
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("pages", totalPages);
-    formData.append("copies", copies);
-    formData.append("type", type);
-    formData.append("price", totalPrice);
-
-    const pageRange = document.getElementById("pageRange").value;
-    formData.append("pageRange", pageRange);
-
-    try {
-        const res = await fetch("https://printmod.onrender.com/upload", {
-            method: "POST",
-            body: formData
-        });
-
-        alert("Status: " + res.status);
-
-        if (!res.ok) throw new Error("Server error");
-
-        const data = await res.json();
-
-        alert("✅ Order saved successfully!");
-
-    } catch (err) {
-        console.error(err);
-        alert("❌ Failed: " + err.message);
-    }
-};        
-
-}
+        if (selectedPages === 0) {
+            alert("Invalid page range");
+            return;
+        }
 
         const type = printType.value;
         const copies = parseInt(copiesInput.value) || 1;
@@ -199,33 +153,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("pages", totalPages);
-        formData.append("selectedPages", selectedPages);
-        formData.append("pageRange", pageRangeInput.value || "All");
+        formData.append("pageRange", document.getElementById("pageRange").value);
         formData.append("copies", copies);
         formData.append("type", type);
         formData.append("price", totalPrice);
 
         try {
-            const res = await fetch("https://printmod.onrender.com/upload", {
-    method: "POST",
-    body: formData
-});
-            };
+            const res = await fetch("https://print-module-w45w.onrender.com/upload", {
+                method: "POST",
+                body: formData
+            });
 
             await res.json();
 
             alert("✅ Order saved successfully!");
 
-            // ✅ Reset UI
+            // ✅ RESET UI
             fileInput.value = "";
             fileName.textContent = "";
             pageCountText.textContent = "";
             priceText.textContent = "₹0";
             copiesInput.value = 1;
             printType.value = "bw";
-            pageRangeInput.value = "";
+            document.getElementById("pageRange").value = "";
             container.innerHTML = "";
-
             totalPages = 0;
             pdfDoc = null;
 
