@@ -1,74 +1,95 @@
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const fs = require("fs");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orders</title>
 
-const app = express();
-
-// ✅ Only ONE upload
-const upload = multer({ dest: "uploads/" });
-
-// ✅ CORS
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"]
-}));
-
-// ✅ Root route
-app.get("/", (req, res) => {
-    res.send("Backend is running ✅");
-});
-
-// ✅ SAVE ORDER
-app.post("/upload", upload.single("file"), (req, res) => {
-    try {
-        const { pages, copies, type, price, pageRange } = req.body;
-
-        const order = {
-            fileName: req.file.originalname,
-            pages,
-            pageRange,
-            copies,
-            type,
-            price,
-            date: new Date()
-        };
-
-        console.log(order);
-
-        // ✅ Save to file
-        let orders = [];
-
-        if (fs.existsSync("orders.json")) {
-            orders = JSON.parse(fs.readFileSync("orders.json"));
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f5f7fa;
         }
 
-        orders.push(order);
+        h2 {
+            text-align: center;
+        }
 
-        fs.writeFileSync("orders.json", JSON.stringify(orders, null, 2));
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
 
-        res.json({ message: "Order saved successfully" });
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Orders List</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Pages</th>
+            <th>Selected Pages</th>
+            <th>Copies</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="ordersTable"></tbody>
+</table>
+
+<script>
+async function loadOrders() {
+    try {
+        const res = await fetch("https://print-module-w45w.onrender.com/orders");
+        const orders = await res.json();
+
+        const table = document.getElementById("ordersTable");
+        table.innerHTML = "";
+
+        if (orders.length === 0) {
+            table.innerHTML = "<tr><td colspan='7'>No orders found</td></tr>";
+            return;
+        }
+
+        orders.forEach(order => {
+            const row = `
+                <tr>
+                    <td>${order.fileName}</td>
+                    <td>${order.pages}</td>
+                    <td>${order.pageRange || "All"}</td>
+                    <td>${order.copies}</td>
+                    <td>${order.type}</td>
+                    <td>₹${order.price}</td>
+                    <td>${new Date(order.date).toLocaleString()}</td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Server error" });
+        alert("Failed to load orders");
     }
-});
+}
 
-// ✅ GET ORDERS
-app.get("/orders", (req, res) => {
-    if (!fs.existsSync("orders.json")) {
-        return res.json([]);
-    }
+loadOrders();
+</script>
 
-    const data = JSON.parse(fs.readFileSync("orders.json"));
-    res.json(data);
-});
-
-// ✅ ONLY ONE LISTEN (IMPORTANT)
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
-});
+</body>
+</html>
