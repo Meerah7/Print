@@ -1,95 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Orders</title>
+const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
+const mongoose = require("mongoose");
 
-    <style>
-        body {
-            font-family: Arial;
-            padding: 20px;
-            background: #f5f7fa;
-        }
+const app = express();
 
-        h2 {
-            text-align: center;
-        }
+// ✅ MONGODB CONNECTION
+mongoose.connect("YOUR_MONGODB_URL")
+    .then(() => console.log("MongoDB Connected ✅"))
+    .catch(err => console.log(err));
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
+// ✅ MIDDLEWARE
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"]
+}));
 
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
+app.use(express.json());
 
-        th {
-            background: #2563eb;
-            color: white;
-        }
-    </style>
-</head>
+// ✅ FILE UPLOAD SETUP
+const upload = multer({ dest: "uploads/" });
 
-<body>
+// ✅ SCHEMA
+const orderSchema = new mongoose.Schema({
+    fileName: String,
+    pages: Number,
+    pageRange: String,
+    copies: Number,
+    type: String,
+    price: Number,
+    date: Date
+});
 
-<h2>Orders List</h2>
+const Order = mongoose.model("Order", orderSchema);
 
-<table>
-    <thead>
-        <tr>
-            <th>File</th>
-            <th>Pages</th>
-            <th>Selected Pages</th>
-            <th>Copies</th>
-            <th>Type</th>
-            <th>Price</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody id="ordersTable"></tbody>
-</table>
+// ✅ ROOT ROUTE (FOR TEST)
+app.get("/", (req, res) => {
+    res.send("Backend is running ✅");
+});
 
-<script>
-async function loadOrders() {
+// ✅ SAVE ORDER
+app.post("/upload", upload.single("file"), async (req, res) => {
     try {
-        const res = await fetch("https://print-module-w45w.onrender.com/orders");
-        const orders = await res.json();
+        const { pages, copies, type, price, pageRange } = req.body;
 
-        const table = document.getElementById("ordersTable");
-        table.innerHTML = "";
-
-        if (orders.length === 0) {
-            table.innerHTML = "<tr><td colspan='7'>No orders found</td></tr>";
-            return;
-        }
-
-        orders.forEach(order => {
-            const row = `
-                <tr>
-                    <td>${order.fileName}</td>
-                    <td>${order.pages}</td>
-                    <td>${order.pageRange || "All"}</td>
-                    <td>${order.copies}</td>
-                    <td>${order.type}</td>
-                    <td>₹${order.price}</td>
-                    <td>${new Date(order.date).toLocaleString()}</td>
-                </tr>
-            `;
-            table.innerHTML += row;
+        const newOrder = new Order({
+            fileName: req.file.originalname,
+            pages,
+            pageRange,
+            copies,
+            type,
+            price,
+            date: new Date()
         });
+
+        await newOrder.save();
+
+        res.json({ message: "Order saved successfully ✅" });
 
     } catch (err) {
         console.error(err);
-        alert("Failed to load orders");
+        res.status(500).json({ message: "Server error ❌" });
     }
-}
+});
 
-loadOrders();
-</script>
+// ✅ GET ALL ORDERS
+app.get("/orders", async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ date: -1 });
+        res.json(orders);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching orders" });
+    }
+});
 
-</body>
-</html>
+// ✅ PORT (RENDER FIX)
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
+});
